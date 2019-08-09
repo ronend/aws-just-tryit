@@ -1,0 +1,27 @@
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  MacroFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.6
+      Handler: index.handler
+      Policies: AWSLambdaBasicExecutionRole
+      InlineCode: |
+        def handler(event, context):
+            template = event['fragment']
+            template["Resources"] = {
+                "MySNSTopic" : {
+                    "Type" : "AWS::SNS::Topic",
+                }
+            }
+            return {
+                    "requestId": event["requestId"],
+                    "status": "success",
+                    "fragment": template,
+            }
+  Macro:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: TestMacroAndStackSets
+      FunctionName: !GetAtt MacroFunction.Arn
